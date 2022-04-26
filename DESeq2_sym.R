@@ -4,13 +4,11 @@ library(pheatmap)
 library(vsn)
 library(RColorBrewer)
 
-setwd('/Users/Maria/Desktop/Kenkel_lab/bioinformatics/bioinformatics_class_proj/')
-
-cts=read.table("computational/Dec2019/CG_AllCountsSym.txt",row.names=1) #Reading in the table of counts per isogroup by sample
+cts=read.table("CG_AllCountsSym.txt",row.names=1) #Reading in the table of counts per isogroup by sample
 head(cts) 
 length(cts[,1])  #34160 isogroups
 
-host=read.table("computational/CG_AllCountsHost_new.txt",header=TRUE,row.names=1)
+host=read.table("CG_AllCountsHost_new.txt",header=TRUE,row.names=1)
 colnames=colnames(host)
 colnames(cts)=colnames 
 
@@ -36,8 +34,8 @@ names(cts)
 # colData=data.frame(cbind(origin,treatment,stage))
 # head(colData)
 
-#write.csv(colData,file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/CG_colData_all.csv')
-colData=read.csv('downstream_analyses/Mar2020/DESeq/DESeq2_June2021/CG_colData_all.csv')
+#write.csv(colData,file='sym_colData.csv')
+colData=read.csv('sym_colData.csv')
 
 ################# To sum number of mapped reads
 # 
@@ -60,7 +58,7 @@ colData=read.csv('downstream_analyses/Mar2020/DESeq/DESeq2_June2021/CG_colData_a
 # cds=estimateDispersions(real,method="blind")
 # vsdBlind=varianceStabilizingTransformation(cds)
 # 
-# v="/Users/maria/Desktop/Kenkel_lab/bioinformatics/bioinformatics_class_proj/downstream_analyses/Mar2020/DESeq/arrayQualityMetrics_CGsym/"
+# v="arrayQualityMetrics_CGsym"
 # 
 # arrayQualityMetrics(vsdBlind,outdir=v,intgroup=c("genotype"),force=TRUE) #check .html output file in new folder
 
@@ -285,12 +283,12 @@ res_stage_control <- results(dds, contrast=c('group', 'AdultControl', 'RecruitCo
 res_stage_heat <- results(dds, contrast=c('group','AdultHeat','RecruitHeat')) #819 up, 2530 down
 res_origin <- results(dds,contrast=c('origin','in','off')) #664 up, 1016 down
 
-write.csv(as.data.frame(res_Adult),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_symAdult_trmt_response.csv')
-write.csv(as.data.frame(res_Recruit),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_symRecruit_trmt_response.csv')
-write.csv(as.data.frame(res_stage_control),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_sym_stage_control_AR.csv') # adults / recruits
+write.csv(as.data.frame(res_Adult),file='DESeq2_symAdult_trmt_response.csv')
+write.csv(as.data.frame(res_Recruit),file='DESeq2_symRecruit_trmt_response.csv')
+write.csv(as.data.frame(res_stage_control),file='DESeq2_sym_stage_control_AR.csv') # adults / recruits
 
 save(dds, res_Adult,res_Recruit, res_stage_control, res_stage_heat, res_origin, file = 'DESeq2_sym_by_stage.RData')
-load(file = 'downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_sym_by_stage.RData')
+load(file = 'DESeq2_sym_by_stage.RData')
 
 ###### Generating directional GO output using pvals
 #Adult response
@@ -302,14 +300,14 @@ res_Recruit$logP<-(-log((res_Recruit$padj+0.0000000001),10))*(res_Recruit$direct
 #output files
 Adult_out<-as.data.frame(cbind("gene"=row.names(res_Adult),"logP"=res_Adult$logP))
 Recruit_out<-as.data.frame(cbind("gene"=row.names(res_Recruit),"logP"=res_Recruit$logP))
-write.csv(Adult_out,file="downstream_analyses/Mar2020/DESeq/DESeq2_June2021/GO_MWU-master/GO_input_files/GOrankSYM_AdultResponseToTreat.csv",quote=F,row.names=F)
-write.csv(Recruit_out,file="downstream_analyses/Mar2020/DESeq/DESeq2_June2021/GO_MWU-master/GO_input_files/GOrankSYM_RecruitResponseToTreat.csv",quote=F,row.names=F)
+write.csv(Adult_out,file="GOrankSYM_AdultResponseToTreat.csv",quote=F,row.names=F)
+write.csv(Recruit_out,file="GOrankSYM_RecruitResponseToTreat.csv",quote=F,row.names=F)
 
 #### generating GO output using LFCs
 Adult_out<-as.data.frame(cbind("gene"=row.names(res_Adult),"LFC"=res_Adult$log2FoldChange))
 Recruit_out<-as.data.frame(cbind("gene"=row.names(res_Recruit),"LFC"=res_Recruit$log2FoldChange))
-write.csv(Adult_out,file="downstream_analyses/Mar2020/DESeq/DESeq2_June2021/GO_MWU-master/GO_input_LFC/GO_LFC_SYM_AdultResponseToTreat.csv",quote=F,row.names=F)
-write.csv(Recruit_out,file="downstream_analyses/Mar2020/DESeq/DESeq2_June2021/GO_MWU-master/GO_input_LFC/GO_LFC_SYM_RecruitResponseToTreat.csv",quote=F,row.names=F)
+write.csv(Adult_out,file="GO_LFC_SYM_AdultResponseToTreat.csv",quote=F,row.names=F)
+write.csv(Recruit_out,file="GO_LFC_SYM_RecruitResponseToTreat.csv",quote=F,row.names=F)
 
 
 
@@ -325,7 +323,7 @@ library(VennDiagram)
 venn.diagram(
   x=candidates,
   category.names = c('Adult','Recruit'),
-  filename='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/plots/SYM_TrmtResponse_byLifeStageVenn.png',
+  filename='plots/SYM_TrmtResponse_byLifeStageVenn.png',
   col=c('#762A83',"#1B7837"),
   lwd=5,
   margin= 0.2,
@@ -342,7 +340,7 @@ venn.diagram(
 
 # make output of annotated genes overlapping and their LFC
 overlap=Adult_trmtGenes[Adult_trmtGenes %in% Recruit_trmtGenes]
-iso2gene=read.table('~/Desktop/Kenkel_lab/bioinformatics/bioinformatics_class_proj/computational/kb8_blast_annot_July2021/kb8_iso2gene.tab',sep = '\t', colClasses = "character")
+iso2gene=read.table('kb8_iso2gene.tab',sep = '\t', colClasses = "character")
 overlap_genes=iso2gene[iso2gene$V1 %in% overlap,]
 AdultSYM_LFC = subset(res_Adult, subset = rownames(res_Adult) %in% overlap_genes$V1, select=log2FoldChange)
 RecruitSYM_LFC = subset(res_Recruit, subset = rownames(res_Recruit) %in% overlap_genes$V1, select=log2FoldChange)
@@ -483,83 +481,6 @@ venn(candidates)
 candidates=list('Adult'=Adult_trmtGenes,'Recruit'=Recruit_trmtGenes,'Treat DEGs All'=sigTrmtAll)
 venn(candidates)
 
-################ Barshis et al., 2013 chi2 test #################
-# now try Barhis plots -- my thoughts are this is a detection thing, and more treatment responsive genes actually overlap between adults and recruits
-#up_Rgenes=rownames(res_Recruit[which(res_Recruit$log2FoldChange > 0 & res_Recruit$padj < 0.1),])
-RgenesOnly=Recruit_trmtGenes[! Recruit_trmtGenes %in% Adult_trmtGenes] #139
-
-res_A_Rgenes=subset(res_Adult,rownames(res_Adult) %in% RgenesOnly)
-res_R_sub=res_Recruit[rownames(res_Recruit) %in% RgenesOnly,]
-ggplot()+geom_point(aes(x=res_R_sub$log2FoldChange,y=res_A_Rgenes$log2FoldChange))+
-  geom_abline(intercept = 0,slope=1,linetype='dashed',color='blue')+ylab('Adult response log2(fold change)')+
-  xlab('Recruit response log2(fold change)')+ggtitle('Recruit DEGs to treatment')+xlim(-3,3)+ylim(-3,3)
-
-# same thing but for adult degs to trmt
-AgenesOnly=Adult_trmtGenes[! Adult_trmtGenes %in% Recruit_trmtGenes] #76
-
-res_R_Agenes=subset(res_Recruit,rownames(res_Recruit) %in% AgenesOnly)
-res_A_sub=res_Adult[rownames(res_Adult) %in% AgenesOnly,]
-ggplot()+geom_point(aes(x=res_A_sub$log2FoldChange,y=res_R_Agenes$log2FoldChange))+
-  geom_abline(intercept = 0,slope=1,linetype='dashed',color='blue')+ylab('Recruit response log2(fold change)')+
-  xlab('Adult response log2(fold change)')+ggtitle('Adult DEGs to treatment')+ylim(-3,3)+ylim(-3,3)
-
-
-# check for frontloading of recruit DEGs in Adults
-res_stage_control=results(dds,contrast = c('group','AdultControl','RecruitControl'))
-RgenesOnlyUP=rownames(subset(res_Recruit,padj < 0.1 & log2FoldChange > 0  & !rownames(res_Recruit) %in% Adult_trmtGenes))
-
-res_stage_control_rDEGs=subset(res_stage_control,rownames(res_stage_control) %in% RgenesOnlyUP)
-res_stage_heat_rDEGs=subset(res_stage_heat,rownames(res_stage_heat) %in% RgenesOnlyUP)
-
-# compare recruit foldchange to heat / adult fold change to heat vs foldchange of Recruit vs Adult in control
-res_A_Rgenes=subset(res_Adult,rownames(res_Adult) %in% RgenesOnlyUP)
-res_R_Rgenes=subset(res_Recruit,rownames(res_Recruit) %in% RgenesOnlyUP)
-rownames(res_A_Agenes) == rownames(res_R_Agenes)
-RvA_response = res_A_Rgenes$log2FoldChange / res_R_Rgenes$log2FoldChange
-ggplot()+geom_point(aes(x=RvA_response,y=res_stage_control_rDEGs$log2FoldChange))+
-  geom_hline(aes(x=RvA_response,y=res_stage_control_inDEGs$log2FoldChange),yintercept=1,linetype='dashed',color='red')+
-  geom_vline(aes(x=RvA_response,y=res_stage_control_inDEGs$log2FoldChange),xintercept=1,linetype='dashed',color='red')+
-  ylab('Adult vs Recruit control log2(fold change)')+
-  xlab('Adult FC vs Recruit FC')+ggtitle('Recruit DEGs to treatment ONLY UP')
-
-###### check for frontloading of Adult DEGs in Recruits
-res_stage_control=results(dds,contrast = c('group','RecruitControl','AdultControl'))
-AgenesOnlyUP=rownames(subset(res_Adult,padj < 0.1 & log2FoldChange > 0  & !rownames(res_Adult) %in% Recruit_trmtGenes))
-
-res_stage_control_ADEGs=subset(res_stage_control,rownames(res_stage_control) %in% AgenesOnlyUP)
-res_stage_heat_ADEGs=subset(res_stage_heat,rownames(res_stage_heat) %in% AgenesOnlyUP)
-
-# compare recruit foldchange to heat / adult fold change to heat vs foldchange of Recruit vs Adult in control
-res_R_Agenes=subset(res_Recruit,rownames(res_Recruit) %in% AgenesOnlyUP)
-res_A_Agenes=subset(res_Adult,rownames(res_Adult) %in% AgenesOnlyUP)
-rownames(res_R_Agenes) == rownames(res_A_Agenes)
-AvR_response = res_R_Agenes$log2FoldChange / res_A_Agenes$log2FoldChange
-ggplot()+geom_point(aes(x=AvR_response,y=res_stage_control_ADEGs$log2FoldChange))+
-  geom_hline(aes(x=AvR_response,y=res_stage_control_ADEGs$log2FoldChange),yintercept=1,linetype='dashed',color='red')+
-  geom_vline(aes(x=AvR_response,y=res_stage_control_ADEGs$log2FoldChange),xintercept=1,linetype='dashed',color='red')+
-  ylab('Recruit vs Adult control log2(fold change)')+
-  xlab('Recruit FC vs Adult FC')+ggtitle('Adult DEGs to treatment ONLY')
-########################################
-
-# let's check if there are any recruit DEGs being frontloaded
-# aka look at if any of the treatment responsive genes not responding in recruits are upregulated relative to adult samples in control conditions
-res_stage_control=results(dds,contrast = c('group','RecruitControl','AdultControl'))
-up_control=subset(res_stage_control,padj < 0.1 & log2FoldChange > 0)
-stage_control_up=rownames(up_control)
-
-candidates=list('adult heat response up' = AgenesOnlyUP,'recruit vs adult control up' = stage_control_up)
-venn(candidates)
-
-# now see if adults are frontloading recruit responsive genes
-res_stage_control=results(dds,contrast = c('group','AdultControl','RecruitControl'))
-up_control=subset(res_stage_control,padj < 0.1 & log2FoldChange > 0)
-stage_control_up=rownames(up_control)
-
-candidates=list('recruit heat response up' = RgenesOnly,'adult vs recruit control up' = stage_control_up)
-venn(candidates)
-
-
-
 
 
 ##### ~ stage + origin*treatment #####
@@ -582,12 +503,12 @@ res_origin_control <- results(dds, contrast=c('group', 'inControl', 'offControl'
 res_origin_heat <- results(dds, contrast=c('group','inHeat','offHeat')) #298 up, 310 down
 res_stage <- results(dds,contrast=c('stage','Adult','Recruit')) #1351 up, 5788 down
 
-write.csv(as.data.frame(res_in),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_symInshore_trmt_response.csv')
-write.csv(as.data.frame(res_off),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_symOffshore_trmt_response.csv')
-write.csv(as.data.frame(res_origin_control),file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_sym_origin_control_IO.csv') # inshore / offshore
+write.csv(as.data.frame(res_in),file='DESeq2_symInshore_trmt_response.csv')
+write.csv(as.data.frame(res_off),file='DESeq2_symOffshore_trmt_response.csv')
+write.csv(as.data.frame(res_origin_control),file='DESeq2_sym_origin_control_IO.csv') # inshore / offshore
 
-save(dds, res_in,res_off, res_origin_control, res_origin_heat, res_stage, file = 'downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_sym_by_origin.RData')
-load('downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_sym_by_origin.RData')
+save(dds, res_in,res_off, res_origin_control, res_origin_heat, res_stage, file = 'DESeq2_sym_by_origin.RData')
+load('DESeq2_sym_by_origin.RData')
 
 ###### Generating directional GO output
 # #inshore response
@@ -631,7 +552,7 @@ venn.diagram(
 
 #make output of overlapping genes
 overlap=in_trmtGenes[in_trmtGenes %in% off_trmtGenes]
-iso2gene=read.table('~/Desktop/Kenkel_lab/bioinformatics/bioinformatics_class_proj/computational/kb8_blast_annot_July2021/kb8_iso2gene.tab',sep = '\t', colClasses = "character")
+iso2gene=read.table('kb8_blast_annot_July2021/kb8_iso2gene.tab',sep = '\t', colClasses = "character")
 overlap_genes=iso2gene[iso2gene$V1 %in% overlap,]
 InshoreSYM_LFC = subset(res_in, subset = rownames(res_in) %in% overlap_genes$V1, select=log2FoldChange)
 OffshoreSYM_LFC = subset(res_off, subset = rownames(res_off) %in% overlap_genes$V1, select=log2FoldChange)
@@ -644,7 +565,7 @@ merge_df$V2=NULL
 
 head(merge_df)
 names(merge_df)=c('isogroup','inshore sym (LFC)', 'offshore sym (LFC)', 'gene','GN')
-write.csv(x=merge_df,file='downstream_analyses/Mar2020/DESeq/DESeq2_June2021/interesting_genes/SYM_origin_CoreGenes.csv')
+write.csv(x=merge_df,file='SYM_origin_CoreGenes.csv')
 
 
 # plot out LFCs
