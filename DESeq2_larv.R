@@ -215,81 +215,8 @@ resultsNames(dds)
 res_int=results(dds,name = 'originoff.treatmentHeat')
 summary(res_int) # no genes significant for interaction
 
-################ Barshis et al., 2013 chi2 test #################
-# to see if genes just arent being detected in offshore due to high variance or because truly no change
-
-# plot correlation of fold change between inshore and offshore
-res_in_sub=subset(res_in, padj < 0.1)
-in_genes=rownames(res_in_sub)
-res_off_sub=subset(res_off, padj < 0.1)
-off_genes=rownames(res_off_sub)
-
-res_off_ingenes=subset(res_off,rownames(res_off) %in% res_in_genes_only)
-res_in_sub=res_in_sub[rownames(res_in_sub) %in% res_in_genes_only,]
-ggplot()+geom_point(aes(x=res_in_sub$log2FoldChange,y=res_off_ingenes$log2FoldChange))+
-  geom_abline(intercept = 0,slope=1,linetype='dashed',color='blue')+ylab('Offshore response log2(fold change)')+
-  xlab('Inshore response log2(fold change)')+ggtitle('Inshore DEGs to treatment')
-
-# let's do X2 test for up and down genes separately
-# pull out genes that are unique to inshore and are upregulated above the one to one line
-in_genes_only=subset(res_in_sub, !rownames(res_in_sub) %in% off_genes)
-nrow(in_genes_only[in_genes_only$log2FoldChange > 0 & in_genes_only$log2FoldChange > res_off_ingenes$log2FoldChange,]) # 3 genes where LC is higher in inshore
-nrow(in_genes_only[in_genes_only$log2FoldChange > 0 & in_genes_only$log2FoldChange < res_off_ingenes$log2FoldChange,]) # 1 genes where LC is smaller in inshore
-up=c(3,1)
-chisq.test(up, p=c(0.5,0.5))
-# not sig, probs not enough genes to draw any conclusion here
-
-# now for downregulated genes
-nrow(in_genes_only[in_genes_only$log2FoldChange < 0 & in_genes_only$log2FoldChange > res_off_ingenes$log2FoldChange,]) # 0 genes 
-nrow(in_genes_only[in_genes_only$log2FoldChange < 0 & in_genes_only$log2FoldChange < res_off_ingenes$log2FoldChange,]) # 10 genes 
-down=c(0,10)
-chisq.test(down, p=c(0.5,0.5))
-# X-squared = 10, df = 1, p-value = 0.001565
-# significant in downreg genes -- so most genes significantly downregulated in inshore to heat are not responding in offshore
-# so not just due to sample size / variation (at least for downreg genes detected for inshore response to heat)
-
-# now let's check if there are any inshore DEGs being frontloaded
-# aka look at if any of the treatment responsive genes that are specific to inshore corals are also upregulated relative to offshore samples in control conditions
-in_gNames_only=rownames(in_genes_only)
-off_gNames_only= off_genes[! off_genes %in% in_genes]
-up_control=subset(res_origin_control,padj < 0.1 & log2FoldChange > 0)
-origin_control_up=rownames(up_control)
-candidates=list('inshore heat response' = in_gNames_only,' offshore control up' = origin_control_up)
-venn(candidates)
-# so no genes being frontloaded, makes sense based on correlation analysis as well (not enough genes upreg in inshore to run X2 test)
-
-##### now switch it up and look at offshore responsive genes in inshore
-# correlation for offshore DEGs to heat
-res_in_offgenes=subset(res_in,rownames(res_in) %in% off_gNames_only)
-res_off_sub=res_off[rownames(res_off) %in% off_gNames_only,]
-ggplot()+geom_point(aes(x=res_off_sub$log2FoldChange,y=res_in_offgenes$log2FoldChange))+
-  geom_abline(intercept = 0,slope=1)+ylab('Inshore response log2(fold change)')+
-  xlab('Offshore response log2(fold change)')+ggtitle('Offshore DEGs to treatment')
-
-# check if inshore are frontloading offshroe degs
-res_origin_control <- results(dds, contrast=c('group','inControl','offControl'))
-res_origin_control_offDEGs=subset(res_origin_control,rownames(res_origin_control) %in% off_gNames_only)
-res_origin_heat_offDEGs=subset(res_origin_heat,rownames(res_origin_heat) %in% off_gNames_only)
-# compare in foldchange to heat / off fold change to heat vs foldchange of in vs off in control
-res_in_offgenes=subset(res_in,rownames(res_in) %in% off_gNames_only)
-res_off_offgenes=subset(res_off,rownames(res_off) %in% off_gNames_only)
-rownames(res_off_offgenes) == rownames(res_in_offgenes)
-inVoff_response = res_in_offgenes$log2FoldChange / res_off_offgenes$log2FoldChange
-ggplot()+geom_point(aes(x=inVoff_response,y=res_origin_control_offDEGs$log2FoldChange))+
-  geom_hline(aes(x=inVoff_response,y=res_origin_control_offDEGs$log2FoldChange),yintercept=1,linetype='dashed',color='red')+
-  geom_vline(aes(x=inVoff_response,y=res_origin_control_offDEGs$log2FoldChange),xintercept=1,linetype='dashed',color='red')+
-  ylab('in / off control log2(fold change)')+
-  xlab('in FC / off FC to heat')+ggtitle('Offshore DEGs to treatment ONLY')
-
-# check out venn diagram for frontloading by comparing genes upregulated in inshore compared to off in control conditions and those responding to treatment in offshore
-# pull out genes upreg in nishore v offshore in control
-UpinVoff_control=rownames(subset(res_origin_control, log2FoldChange > 0 & padj < 0.1))
-
-candidates = list('up inshore v offshore control' = UpinVoff_control, 'offshore response' = off_gNames_only)
-venn(candidates)
-
 # see how many treatment genes in larvae overlap with treatment genes in adults/recruits
-AR_df=read.csv('downstream_analyses/Mar2020/DESeq/DESeq2_June2021/DESeq2_vsd_pvals_30June2021.csv',row.names = 1)
+AR_df=read.csv('DESeq2_vsd_pvals_30June2021.csv',row.names = 1)
 AR_trmtDEGs=rownames(subset(AR_df,trmt_padj < 0.05))
 
 # response to treatment
